@@ -10,11 +10,11 @@ func UserRoutes(incomingUserRoutes *gin.Engine) {
 	incomingUserRoutes.POST("/users/signup", controllers.SignUp())
 	incomingUserRoutes.POST("/admin/addproduct", controllers.Addproduct())
 	incomingUserRoutes.GET("/users/productview", controllers.Productview())
-	incomingUserRoutes.GET("/users/search", controllers.Search())
+	incomingUserRoutes.GET("/users/search", controllers.SearchProduct())
 }
 
 func CartRoutes(incomingCartRoutes *gin.Engine) {
 	incomingCartRoutes.POST("/users/addtocart", controllers.AddToCart())
 	incomingCartRoutes.DELETE("/users/deletefromcart/{id}", controllers.DeleteFromCartByID())
-	incomingCartRoutes.DELETE("/users/deletefromcart/{id}", controllers.DeleteFromCart())
+	incomingCartRoutes.DELETE("/users/deletefromcart", controllers.DeleteFromCart())
 }
