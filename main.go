@@ -6,6 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"github.com/rodoben/ecommerce/controllers"
+	"github.com/rodoben/ecommerce/database"
 	"github.com/rodoben/ecommerce/routes"
 )
 
@@ -20,9 +22,11 @@ func main() {
 		log.Fatal("Cannot fetch the port form the env", port)
 	}
 
-	router := gin.New()
+	dbConnect := database.DBConnect()
 
-	routes.UserRoutes(router)
+	app := controllers.NewApplication(database.UserData(dbConnect, "userdata"), database.ProductData(dbConnect, "productdata"))
+	router := gin.New()
+	routes.UserRoutes(router, app)
 	routes.CartRoutes(router)
 
 	panic(router.Run(":" + port))
