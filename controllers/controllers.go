@@ -38,3 +38,14 @@ func VerifyPassword(UserPassword string, Givenpassword string) (bool, error) {
 	}
 	return valid, err
 }
+
+func VerifyPassword_v1(userpassword string, givenpassword string) (bool, string) {
+	err := bcrypt.CompareHashAndPassword([]byte(givenpassword), []byte(userpassword))
+	valid := true
+	msg := ""
+	if err != nil {
+		msg = "Login Or Passowrd is Incorerct"
+		valid = false
+	}
+	return valid, msg
+}

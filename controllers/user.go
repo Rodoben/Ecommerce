@@ -20,32 +20,40 @@ import (
 
 var userCollection *mongo.Collection = database.UserData(database.DBConnect(), "userdata")
 
+var productCollection *mongo.Collection = database.ProductData(database.DBConnect(), "productdata")
+
 func SignIn() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
 		ctx, cancel := context.WithTimeout(c, 20*time.Second)
 		defer cancel()
-		var user models.User
+		var user, founduser models.User
 
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "unable to parse the body in the model"})
 			return
 		}
 
-		count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email, "phonenumber": user.PhoneNumber})
+		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&founduser)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "error fetching information from database"})
 			return
 		}
+		fmt.Println("founduser", founduser.FirstName)
 
-		fmt.Println("count", count)
-		if count != 1 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user does not exists"})
+		passwordverified, _ := VerifyPassword_v1(*user.Password, *founduser.Password)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "error verifying password"})
+			return
+		}
+		if !passwordverified {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "password is incorrect"})
 			return
 		}
 
 		c.JSON(http.StatusAccepted, gin.H{"Success": "signed in!",
+			"UserName":    *founduser.FirstName,
 			"status code": http.StatusAccepted})
 	}
 }
@@ -53,7 +61,7 @@ func SignIn() gin.HandlerFunc {
 func (app *Application) SignUp() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//context deadline
-		fmt.Println("1")
+
 		var ctx, cancel = context.WithTimeout(context.Background(), time.Second*100)
 		defer cancel()
 
@@ -63,7 +71,7 @@ func (app *Application) SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		fmt.Println("2")
+
 		//validate struct
 		validate := validator.New()
 		validateError := validate.Struct(user)
@@ -71,11 +79,8 @@ func (app *Application) SignUp() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validateError.Error()})
 			return
 		}
-		fmt.Println("3")
 
 		//check if the email exists in database
-
-		fmt.Println(user.Email)
 
 		count, err := app.UserCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 		if err != nil {
@@ -84,22 +89,18 @@ func (app *Application) SignUp() gin.HandlerFunc {
 			return
 		}
 
-		fmt.Println("4")
 		if count > 0 {
 			//log.Fatal()
 			c.JSON(http.StatusBadRequest, gin.H{"email": "email already exist"})
 			return
 		}
 		//checks if the phone number exists
-		fmt.Println(user.PhoneNumber)
 
-		fmt.Println("5")
 		phone, err := app.UserCollection.CountDocuments(ctx, bson.M{"phonenumber": user.PhoneNumber})
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"phonenumber": "unable to verify phone number"})
 			return
 		}
-		fmt.Println("6")
 
 		if phone > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"phonenumber": "phone number already exist"})
@@ -114,10 +115,12 @@ func (app *Application) SignUp() gin.HandlerFunc {
 		}
 
 		hashedPassword := HashPassword(*user.Password)
-		fmt.Println("7")
+
+		userid := "1234"
 		// prepare the model
 		user.Password = &hashedPassword
 		user.ID = primitive.NewObjectID()
+		user.User_Id = &userid
 		user.Created_At = time.Now()
 		user.Updated_At = time.Now()
 		user.WishList = make([]models.WishList, 0)
@@ -137,8 +140,52 @@ func (app *Application) SignUp() gin.HandlerFunc {
 }
 
 func Addproduct() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
+		ctx, cancel := context.WithTimeout(c, 10*time.Second)
+		defer cancel()
+
+		var product, foundProduct models.Product
+
+		if err := c.BindJSON(&product); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		count, err := productCollection.CountDocuments(ctx, bson.M{"productname": product.ProductName})
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		}
+		fmt.Println(count)
+
+		if count > 0 {
+
+			err := productCollection.FindOne(ctx, bson.M{"productname": *product.ProductName}).Decode(&foundProduct)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+			}
+			foundProduct.Quantity++
+			update := bson.D{
+				{Key: "$set", Value: bson.D{
+					{Key: "quantity", Value: foundProduct.Quantity},
+				}},
+			}
+
+			productCollection.UpdateOne(ctx, bson.M{"productname": product.ProductName}, update)
+			c.JSON(http.StatusCreated, gin.H{"Success": "Succesfully Updated!", "Quantity": foundProduct.Quantity})
+			return
+		}
+		product.Product_id = primitive.NewObjectID()
+
+		_, err = productCollection.InsertOne(ctx, product)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		product.Quantity = 1
+		c.JSON(http.StatusCreated, gin.H{"Success": "Succesfully created!", "Quantity": product.Quantity})
 	}
 }
 

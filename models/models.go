@@ -52,6 +52,7 @@ type Product struct {
 	Product_id  primitive.ObjectID `json:"product_id" bson:"product_id"`
 	ProductName *string            `json:"product_name"`
 	Price       *uint64            `json:"price"`
+	Quantity    int                `json:"quantity"`
 	Rating      *uint8             `json:"rating"`
 	Image       *string            `json:"image"`
 }
