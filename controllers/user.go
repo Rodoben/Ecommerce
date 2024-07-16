@@ -3,9 +3,12 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
+
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -142,22 +145,34 @@ func (app *Application) SignUp() gin.HandlerFunc {
 func Addproduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		ctx, cancel := context.WithTimeout(c, 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		fmt.Println("a")
+		var product models.Product
+		var foundProduct models.Product
+		jsonData, _ := io.ReadAll(c.Request.Body)
 
-		var product, foundProduct models.Product
-
-		if err := c.BindJSON(&product); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		fmt.Println(string(jsonData))
+		if err := json.Unmarshal(jsonData, &product); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "err": "unable to parse json into struct"})
 			return
 		}
+		fmt.Println("b")
+		validate := validator.New()
+		err := validate.Struct(product)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, "unabale to validate the struct")
+			return
 
+		}
+		fmt.Println("c")
 		count, err := productCollection.CountDocuments(ctx, bson.M{"productname": product.ProductName})
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 
 		}
-		fmt.Println(count)
+		fmt.Println(count, "aaa")
 
 		if count > 0 {
 
@@ -177,20 +192,69 @@ func Addproduct() gin.HandlerFunc {
 			c.JSON(http.StatusCreated, gin.H{"Success": "Succesfully Updated!", "Quantity": foundProduct.Quantity})
 			return
 		}
+		fmt.Println("d")
 		product.Product_id = primitive.NewObjectID()
-
+		fmt.Println("e")
 		_, err = productCollection.InsertOne(ctx, product)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		fmt.Println("f")
 		product.Quantity = 1
 		c.JSON(http.StatusCreated, gin.H{"Success": "Succesfully created!", "Quantity": product.Quantity})
 	}
 }
 
-func Productview() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func ProductViewerAdmin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var products models.Product
+
+		defer cancel()
+		if err := c.ShouldBindJSON(&products); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "err": "unable to parse json into struct"})
+			return
+		}
+		fmt.Println(products)
+		products.Product_id = primitive.NewObjectID()
+		_, anyerr := productCollection.InsertOne(ctx, products)
+		if anyerr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Not Created"})
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, "Successfully added our Product Admin!!")
+	}
+}
+func (app *Application) Productview() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		ctx := context.Background()
+
+		var products []models.Product
+		fmt.Println("1")
+
+		cur, err := app.ProductCollection.Find(ctx, bson.M{})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to fetch documents"})
+		}
+		fmt.Println("2", cur)
+		for cur.Next(context.TODO()) {
+			var product models.Product
+			fmt.Println("a")
+			err = cur.Decode(&product)
+			fmt.Println("b")
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to fetch documents"})
+			}
+			fmt.Println("c")
+			products = append(products, product)
+
+		}
+		fmt.Println("3")
+
+		c.JSON(http.StatusOK, gin.H{"success": "sucesfully fetched!", "data": products})
 
 	}
 }
