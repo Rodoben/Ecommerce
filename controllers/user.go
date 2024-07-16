@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -142,6 +143,24 @@ func (app *Application) SignUp() gin.HandlerFunc {
 	}
 }
 
+func validateProduct(product models.Product) error {
+
+	if product.ProductName == nil {
+		return errors.New("product name is required")
+	} else if product.Price == nil {
+		return errors.New("Price is required")
+	} else if product.Image == nil {
+		return errors.New("Image is required")
+	} else if product.Rating == nil {
+		return errors.New("Rating is required")
+	} else if product.Quantity == 0 {
+		product.Quantity = 1
+		return errors.New("Quantity is required")
+	}
+	return nil
+
+}
+
 func Addproduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -157,14 +176,19 @@ func Addproduct() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "err": "unable to parse json into struct"})
 			return
 		}
-		fmt.Println("b")
-		validate := validator.New()
-		err := validate.Struct(product)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, "unabale to validate the struct")
-			return
 
+		err := validateProduct(product)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "err": "unable to parse json into struct"})
+			return
 		}
+
+		if product.ProductName == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "product_name cannot be nil"})
+			return
+		}
+		fmt.Println("b")
+
 		fmt.Println("c")
 		count, err := productCollection.CountDocuments(ctx, bson.M{"productname": product.ProductName})
 		if err != nil {
