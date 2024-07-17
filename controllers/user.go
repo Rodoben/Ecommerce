@@ -284,7 +284,36 @@ func (app *Application) Productview() gin.HandlerFunc {
 }
 
 func SearchProduct() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(c *gin.Context) {
 
+		query := c.Query("name")
+		if query == "" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Query is empty"})
+			return
+		}
+		fmt.Println(query)
+		//var product models.Product
+		var products []models.Product
+		// if err := c.ShouldBindJSON(&product); err != nil {
+		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		// 	return
+		// }
+
+		cur, err := productCollection.Find(c, bson.M{"productname": bson.M{"$regex": query}})
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to fetch record from database"})
+			return
+		}
+
+		err = cur.All(c, &products)
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to fetch record from database"})
+			return
+		}
+		defer cur.Close(c)
+
+		c.JSON(http.StatusOK, gin.H{"Success": http.StatusOK, "data": products})
 	}
 }
