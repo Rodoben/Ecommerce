@@ -41,7 +41,7 @@ func SignIn() gin.HandlerFunc {
 
 		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&founduser)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "error fetching information from database"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User not Exists! please signup"})
 			return
 		}
 		fmt.Println("founduser", founduser.FirstName)
@@ -129,7 +129,7 @@ func (app *Application) SignUp() gin.HandlerFunc {
 		user.Updated_At = time.Now()
 		user.WishList = make([]models.WishList, 0)
 		user.Address = make([]models.Address, 0)
-		user.UserCart = make([]models.UserCart, 0)
+		user.UserCart = make([]map[primitive.ObjectID]models.UserCart, 0)
 
 		// save it to mongo database
 
@@ -148,14 +148,14 @@ func validateProduct(product models.Product) error {
 	if product.ProductName == nil {
 		return errors.New("product name is required")
 	} else if product.Price == nil {
-		return errors.New("Price is required")
+		return errors.New("price is required")
 	} else if product.Image == nil {
-		return errors.New("Image is required")
+		return errors.New("image is required")
 	} else if product.Rating == nil {
-		return errors.New("Rating is required")
+		return errors.New("rating is required")
 	} else if product.Quantity == 0 {
 		product.Quantity = 1
-		return errors.New("Quantity is required")
+		return errors.New("quantity is required")
 	}
 	return nil
 
@@ -291,21 +291,13 @@ func SearchProduct() gin.HandlerFunc {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Query is empty"})
 			return
 		}
-		fmt.Println(query)
-		//var product models.Product
 		var products []models.Product
-		// if err := c.ShouldBindJSON(&product); err != nil {
-		// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		// 	return
-		// }
-
 		cur, err := productCollection.Find(c, bson.M{"productname": bson.M{"$regex": query}})
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to fetch record from database"})
 			return
 		}
-
 		err = cur.All(c, &products)
 
 		if err != nil {
