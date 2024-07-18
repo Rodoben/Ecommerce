@@ -7,21 +7,21 @@ import (
 )
 
 type User struct {
-	ID            primitive.ObjectID                `json:"_id" bson:"_id"`
-	FirstName     *string                           `json:"first_name"  validate:"required,min=2,max=30"`
-	Lastname      *string                           `json:"last_name" validate:"required,min=2,max=30"`
-	Email         *string                           `json:"email" validate:"email,required"`
-	PhoneNumber   *string                           `json:"phonenumber" validate:"required"`
-	Password      *string                           `json:"password" validate:"required,min=6"`
-	Dob           time.Time                         `json:"dob"`
-	Token         *string                           `json:"token"`
-	Refresh_Token *string                           `json:"refresh_token"`
-	Created_At    time.Time                         `json:"created_at"`
-	Updated_At    time.Time                         `json:"updated_at"`
-	User_Id       *string                           `json:"user_id"`
-	WishList      []WishList                        `json:"wishlist"`
-	Address       []Address                         `json:"address"`
-	UserCart      []map[primitive.ObjectID]UserCart `json:"usercart"`
+	ID            primitive.ObjectID              `json:"_id" bson:"_id"`
+	FirstName     *string                         `json:"first_name"  validate:"required,min=2,max=30"`
+	Lastname      *string                         `json:"last_name" validate:"required,min=2,max=30"`
+	Email         *string                         `json:"email" validate:"email,required"`
+	PhoneNumber   *string                         `json:"phonenumber" validate:"required"`
+	Password      *string                         `json:"password" validate:"required,min=6"`
+	Dob           time.Time                       `json:"dob"`
+	Token         *string                         `json:"token"`
+	Refresh_Token *string                         `json:"refresh_token"`
+	Created_At    time.Time                       `json:"created_at"`
+	Updated_At    time.Time                       `json:"updated_at"`
+	User_Id       *string                         `json:"user_id"`
+	WishList      []WishList                      `json:"wishlist"`
+	Address       []Address                       `json:"address"`
+	UserCart      map[primitive.ObjectID]UserCart `json:"usercart"`
 }
 
 type WishList struct {

@@ -57,31 +57,51 @@ func AddToCart() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "product not found"})
 			return
 		}
-		productExists := false
-		for _, cartItem := range foundUser.UserCart {
-			if item, ok := cartItem[productidHex]; ok {
-				// Product already exists in the cart, update the quantity
+		productExist := false
+
+		for id, _ := range foundUser.UserCart {
+			if item, ok := foundUser.UserCart[productidHex]; ok {
+				fmt.Println("item exist and updating count", id)
 				item.Quantity++
-				productExists = true
+				productExist = true
 				break
 			}
+			// else {
+			// 	foundUser.UserCart[productidHex] = productDetails
+			// }
+
 		}
 
-		if !productExists {
-			// If the product does not exist in the cart, add it with quantity 1
-			newCartItem := productDetails
-			newCartMap := map[primitive.ObjectID]models.UserCart{productidHex: newCartItem}
-			foundUser.UserCart = append(foundUser.UserCart, newCartMap)
-		} else {
-			// Update the quantity of the existing product in the cart
-			for i, cartItem := range foundUser.UserCart {
-				if item, ok := cartItem[productidHex]; ok {
-					// Update the quantity
-					foundUser.UserCart[i][productidHex] = item
-					break
-				}
-			}
+		if !productExist {
+			fmt.Println("I am insertinng a record with id", productidHex)
+			foundUser.UserCart[productidHex] = productDetails
+
 		}
+
+		// for _, cartItem := range foundUser.UserCart {
+		// 	if item, ok := cartItem[productidHex]; ok {
+		// 		// Product already exists in the cart, update the quantity
+		// 		item.Quantity++
+		// 		productExists = true
+		// 		break
+		// 	}
+		// }
+
+		// if !productExists {
+		// 	// If the product does not exist in the cart, add it with quantity 1
+		// 	newCartItem := productDetails
+		// 	newCartMap := map[primitive.ObjectID]models.UserCart{productidHex: newCartItem}
+		// 	foundUser.UserCart = append(foundUser.UserCart, newCartMap)
+		// } else {
+		// 	// Update the quantity of the existing product in the cart
+		// 	for i, cartItem := range foundUser.UserCart {
+		// 		if item, ok := cartItem[productidHex]; ok {
+		// 			// Update the quantity
+		// 			foundUser.UserCart[i][productidHex] = item
+		// 			break
+		// 		}
+		// 	}
+		// }
 
 		// Update the cart in the database
 		updateCart := bson.D{
@@ -89,6 +109,8 @@ func AddToCart() gin.HandlerFunc {
 				{Key: "usercart", Value: foundUser.UserCart},
 			}},
 		}
+
+		fmt.Println(foundUser.UserCart)
 
 		_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userId}, updateCart)
 		if err != nil {
@@ -106,26 +128,26 @@ func UpdateCartQuantity() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(c, 10*time.Second)
 		defer cancel()
 		userid := c.Param("userid")
-		productId := c.Param("productid")
+		//	productId := c.Param("productid")
 		var foundUser models.User
 		err := userCollection.FindOne(ctx, bson.M{"user_id": userid}).Decode(&foundUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 			return
 		}
-		productidHex, err := primitive.ObjectIDFromHex(productId)
+		//productidHex, err := primitive.ObjectIDFromHex(productId)
 		if err != nil {
 			log.Println("caanot convert it to objectidHex")
 		}
 
-		for _, v := range foundUser.UserCart {
-			if item, ok := v[productidHex]; ok {
-				item.Quantity++
-				c.JSON(http.StatusBadRequest, gin.H{"error": "product already added to cart"})
-				return
-			}
+		// for _, v := range foundUser.UserCart {
+		// 	if item, ok := v[productidHex]; ok {
+		// 		item.Quantity++
+		// 		c.JSON(http.StatusBadRequest, gin.H{"error": "product already added to cart"})
+		// 		return
+		// 	}
 
-		}
+		// }
 
 		updateCart := bson.D{
 			{Key: "$set", Value: bson.D{
@@ -165,17 +187,17 @@ func DeleteFromCartByID() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 			return
 		}
-		productidHex, err := primitive.ObjectIDFromHex(productId)
+		//productidHex, err := primitive.ObjectIDFromHex(productId)
 		if err != nil {
 			log.Println("caanot convert it to objectidHex")
 		}
 		// Remove the product from the user's cart
-		for i, cartItem := range foundUser.UserCart {
-			if _, exists := cartItem[productidHex]; exists {
-				foundUser.UserCart = append(foundUser.UserCart[:i], foundUser.UserCart[i+1:]...)
-				break
-			}
-		}
+		// for i, cartItem := range foundUser.UserCart {
+		// 	if _, exists := cartItem[productidHex]; exists {
+		// 		foundUser.UserCart = append(foundUser.UserCart[:i], foundUser.UserCart[i+1:]...)
+		// 		break
+		// 	}
+		// }
 
 		// Update the user's cart in the database
 		update := bson.M{"$set": bson.M{"usercart": foundUser.UserCart}}

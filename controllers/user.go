@@ -129,7 +129,7 @@ func (app *Application) SignUp() gin.HandlerFunc {
 		user.Updated_At = time.Now()
 		user.WishList = make([]models.WishList, 0)
 		user.Address = make([]models.Address, 0)
-		user.UserCart = make([]map[primitive.ObjectID]models.UserCart, 0)
+		user.UserCart = make(map[primitive.ObjectID]models.UserCart, 0)
 
 		// save it to mongo database
 

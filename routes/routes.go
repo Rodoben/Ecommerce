@@ -18,3 +18,8 @@ func CartRoutes(incomingCartRoutes *gin.Engine) {
 	incomingCartRoutes.POST("/users/updatecart/:userid/quantity/:productid", controllers.UpdateCartQuantity())
 	incomingCartRoutes.DELETE("/users/deletefromcart/:userid", controllers.DeleteFromCartByID())
 }
+
+func AddressRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
+	incomingRoutes.POST("/users/address", app.AddAdress())
+	incomingRoutes.DELETE("/users/address/:id", controllers.DeleteAdress())
+}
