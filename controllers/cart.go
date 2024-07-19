@@ -200,7 +200,7 @@ func DeleteFromCartByID() gin.HandlerFunc {
 		// }
 
 		// Update the user's cart in the database
-		update := bson.M{"$set": bson.M{"usercart": foundUser.UserCart}}
+		update := bson.M{"$unset": bson.M{"usercart." + productId: ""}}
 		_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userid}, update)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot update user cart"})

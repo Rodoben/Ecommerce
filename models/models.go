@@ -33,11 +33,11 @@ type WishList struct {
 }
 
 type Address struct {
-	Address_ID *string `json:"address_id"`
-	Column1    *string `json:"column1" validate:"required, min 20"`
-	Column2    *string `json:"column2"`
-	Landmark   *string `json:"landmark"`
-	Pincode    *string `json:"pincode" validate:"required, len=6, numeric"`
+	Address_ID primitive.ObjectID `json:"address_id" bson:"address_id"`
+	Column1    *string            `json:"column1" validate:"required, min 20" bson:"column1"`
+	Column2    *string            `json:"column2" bson:"column2"`
+	Landmark   *string            `json:"landmark" bson:"landmark"`
+	Pincode    *string            `json:"pincode" validate:"required, len=6, numeric" bson:"pincode"`
 }
 
 type UserCart struct {

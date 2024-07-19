@@ -28,6 +28,7 @@ func main() {
 	router := gin.New()
 	routes.UserRoutes(router, app)
 	routes.CartRoutes(router)
+	routes.AddressRoutes(router, app)
 
 	panic(router.Run(":" + port))
 
