@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -64,16 +65,43 @@ func DeleteAdress() gin.HandlerFunc {
 		defer cancel()
 		var foundUser models.User
 
-		//addressid := c.Param("id")
+		addressid := c.Param("id")
 		userid := c.Query("userid")
 
-		err := userCollection.FindOne(ctx, bson.M{"user_id", userid}).Decode(&foundUser)
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userid}).Decode(&foundUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to marshal in struct"})
 			return
 		}
+		addressFound := false
+		addressidHex, err := primitive.ObjectIDFromHex(addressid)
+		if err != nil {
+			log.Println("caanot convert it to objectidHex")
+		}
 
-		foundUser.address
+		for i, v := range foundUser.Address {
+			fmt.Println(v.Address_ID)
+			if v.Address_ID == addressidHex {
+				addressFound = true
+				foundUser.Address = append(foundUser.Address[:i], foundUser.Address[i+1:]...)
+				break
+			}
+		}
+		if !addressFound {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "unable to find address"})
+			return
+		}
+		fmt.Println(addressFound)
+
+		//deleteAddress := bson.M{"$pull": bson.M{"address_id": addressidHex}}
+		deleteAddress := bson.M{"$pull": bson.M{"address": bson.M{"address_id": addressidHex}}}
+		_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userid}, deleteAddress)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to delete address"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"deleted": addressid})
 
 	}
 }
