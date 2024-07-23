@@ -23,3 +23,8 @@ func AddressRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
 	incomingRoutes.POST("/users/address", app.AddAdress())
 	incomingRoutes.DELETE("/users/address/:id", controllers.DeleteAdress())
 }
+
+func WishListRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
+	incomingRoutes.POST("/users/wishlist", app.AddToWishList())
+	incomingRoutes.DELETE("/users/wishlist/:userid", app.DeleteFromWishlist())
+}

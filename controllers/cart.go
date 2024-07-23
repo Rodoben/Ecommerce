@@ -177,28 +177,12 @@ func DeleteFromCartByID() gin.HandlerFunc {
 		defer cancel()
 		productId := c.Query("productid")
 		userid := c.Param("userid")
-
-		fmt.Println("prodId", productId)
-		fmt.Println("useid", userid)
 		var foundUser models.User
-
 		err := userCollection.FindOne(ctx, bson.M{"user_id": userid}).Decode(&foundUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found"})
 			return
 		}
-		//productidHex, err := primitive.ObjectIDFromHex(productId)
-		if err != nil {
-			log.Println("caanot convert it to objectidHex")
-		}
-		// Remove the product from the user's cart
-		// for i, cartItem := range foundUser.UserCart {
-		// 	if _, exists := cartItem[productidHex]; exists {
-		// 		foundUser.UserCart = append(foundUser.UserCart[:i], foundUser.UserCart[i+1:]...)
-		// 		break
-		// 	}
-		// }
-
 		// Update the user's cart in the database
 		update := bson.M{"$unset": bson.M{"usercart." + productId: ""}}
 		_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userid}, update)

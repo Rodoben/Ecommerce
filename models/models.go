@@ -19,7 +19,7 @@ type User struct {
 	Created_At    time.Time                       `json:"created_at"`
 	Updated_At    time.Time                       `json:"updated_at"`
 	User_Id       *string                         `json:"user_id"`
-	WishList      []WishList                      `json:"wishlist"`
+	WishList      map[primitive.ObjectID]WishList `json:"wishlist"`
 	Address       []Address                       `json:"address"`
 	UserCart      map[primitive.ObjectID]UserCart `json:"usercart"`
 }

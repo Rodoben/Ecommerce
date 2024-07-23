@@ -127,7 +127,7 @@ func (app *Application) SignUp() gin.HandlerFunc {
 		user.User_Id = &userid
 		user.Created_At = time.Now()
 		user.Updated_At = time.Now()
-		user.WishList = make([]models.WishList, 0)
+		user.WishList = make(map[primitive.ObjectID]models.WishList, 0)
 		user.Address = make([]models.Address, 0)
 		user.UserCart = make(map[primitive.ObjectID]models.UserCart, 0)
 

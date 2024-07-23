@@ -91,9 +91,6 @@ func DeleteAdress() gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "unable to find address"})
 			return
 		}
-		fmt.Println(addressFound)
-
-		//deleteAddress := bson.M{"$pull": bson.M{"address_id": addressidHex}}
 		deleteAddress := bson.M{"$pull": bson.M{"address": bson.M{"address_id": addressidHex}}}
 		_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userid}, deleteAddress)
 		if err != nil {
