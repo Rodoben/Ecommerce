@@ -34,6 +34,8 @@ func Instantbuy(ctx context.Context, productCollection, userCollection mongo.Col
 	order.Price = productDetails.Price
 	order.Ordered_At = time.Now()
 	if order.Payment.COD.IsCod {
+
+		
 		order.Payment.COD.Address = models.Address{}
 	} else {
 		order.Payment.Digital = models.Digital{UPi: &models.UpiDetails{}, Card: &models.CardDetails{}}
