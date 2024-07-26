@@ -30,6 +30,7 @@ func main() {
 	routes.CartRoutes(router)
 	routes.AddressRoutes(router, app)
 	routes.WishListRoutes(router, app)
+	routes.OrderRoutes(router, app)
 
 	panic(router.Run(":" + port))
 

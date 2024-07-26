@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rodoben/ecommerce/database"
 	"github.com/rodoben/ecommerce/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -192,4 +194,37 @@ func DeleteFromCartByID() gin.HandlerFunc {
 		}
 		c.JSON(http.StatusAccepted, gin.H{"succesful": "susseful", "datadeleted": productId})
 	}
+}
+
+func (app *Application) InstantBuy() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+		var parameters models.Payment
+
+		if err := c.BindJSON(&parameters); err != nil {
+			c.AbortWithError(http.StatusBadRequest, errors.New("unbale to unmarshal the payload"))
+		}
+
+		userId := c.Query("userid")
+		if userId == " " {
+			c.AbortWithError(http.StatusBadRequest, errors.New("UserId is empty"))
+		}
+
+		productId := c.Query("productid")
+		if productId == " " {
+			c.AbortWithError(http.StatusBadRequest, errors.New("Product id is empty"))
+		}
+
+		var ctx, cancel = context.WithTimeout(c, 10*time.Second)
+		defer cancel()
+
+		err := database.Instantbuy(ctx, *app.ProductCollection, *app.UserCollection, userId, productId)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, errors.New("unable to process for Instant Buy"))
+		}
+
+		c.IndentedJSON(http.StatusOK, "succesful")
+
+	}
+
 }

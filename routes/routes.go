@@ -28,3 +28,7 @@ func WishListRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
 	incomingRoutes.POST("/users/wishlist", app.AddToWishList())
 	incomingRoutes.DELETE("/users/wishlist/:userid", app.DeleteFromWishlist())
 }
+
+func OrderRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
+	incomingRoutes.POST("/users/instantbuy", app.InstantBuy())
+}

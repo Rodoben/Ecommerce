@@ -22,6 +22,7 @@ type User struct {
 	WishList      map[primitive.ObjectID]WishList `json:"wishlist"`
 	Address       []Address                       `json:"address"`
 	UserCart      map[primitive.ObjectID]UserCart `json:"usercart"`
+	OrderStatus   map[primitive.ObjectID]Order    `json:"order"`
 }
 
 type WishList struct {
@@ -68,10 +69,14 @@ type Order struct {
 }
 
 type Payment struct {
-	COD     Address `json:"cod"`
+	COD     COD     `json:"cod"`
 	Digital Digital `json:"online"`
 }
 
+type COD struct {
+	IsCod bool
+	Address
+}
 type Digital struct {
 	UPi  *UpiDetails  `json:"upi"`
 	Card *CardDetails `json:"cardDetails"`
