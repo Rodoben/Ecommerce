@@ -31,4 +31,5 @@ func WishListRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
 
 func OrderRoutes(incomingRoutes *gin.Engine, app *controllers.Application) {
 	incomingRoutes.POST("/users/instantbuy", app.InstantBuy())
+	incomingRoutes.GET("/users/buyfromcart", app.BuyFromCart())
 }

@@ -64,18 +64,18 @@ type Order struct {
 	Order_Cart []UserCart         `json:"order_cart"`
 	Price      *uint64            `json:"price"`
 	Discount   *uint8             `json:"discount"`
+	Address    Address            `json:"address" bson:"address"`
 	Ordered_At time.Time          `json:"ordered_at"`
 	Payment    Payment            `json:"payment"`
 }
 
 type Payment struct {
 	COD     COD     `json:"cod"`
-	Digital Digital `json:"online"`
+	Digital Digital `json:"digital"`
 }
 
 type COD struct {
-	IsCod bool
-	Address
+	IsCod bool `json:"is_cod"`
 }
 type Digital struct {
 	UPi  *UpiDetails  `json:"upi"`
@@ -83,10 +83,12 @@ type Digital struct {
 }
 
 type UpiDetails struct {
+	IsUpi bool    `json:"isupi"`
 	UpiID *string `json:"upi_id"`
 }
 
 type CardDetails struct {
+	IsCard         bool    `json:"iscard"`
 	CardType       *string `json:"cardtype"`
 	CardHolderName *string `json:"cardholdername"`
 	CardNumber     *string `json:"cardnumber"`

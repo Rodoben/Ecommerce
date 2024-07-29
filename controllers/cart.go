@@ -207,24 +207,48 @@ func (app *Application) InstantBuy() gin.HandlerFunc {
 
 		userId := c.Query("userid")
 		if userId == " " {
-			c.AbortWithError(http.StatusBadRequest, errors.New("UserId is empty"))
+			c.AbortWithError(http.StatusBadRequest, errors.New("userId is empty"))
 		}
 
 		productId := c.Query("productid")
 		if productId == " " {
-			c.AbortWithError(http.StatusBadRequest, errors.New("Product id is empty"))
+			c.AbortWithError(http.StatusBadRequest, errors.New("product id is empty"))
 		}
 
+		addressId := c.Query("addressid")
+		if productId == " " {
+			c.AbortWithError(http.StatusBadRequest, errors.New("AddressId is empty"))
+		}
 		var ctx, cancel = context.WithTimeout(c, 10*time.Second)
 		defer cancel()
 
-		err := database.Instantbuy(ctx, *app.ProductCollection, *app.UserCollection, userId, productId)
+		fmt.Println("addressid", addressId)
+		fmt.Println("userid", productId)
+		fmt.Println("productid", productId)
+
+		order, err := database.Instantbuy(ctx, *app.ProductCollection, *app.UserCollection, userId, productId, addressId, parameters)
 		if err != nil {
-			c.AbortWithError(http.StatusInternalServerError, errors.New("unable to process for Instant Buy"))
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
+			return
 		}
 
-		c.IndentedJSON(http.StatusOK, "succesful")
+		c.JSON(http.StatusOK, gin.H{"data": order})
 
 	}
 
+}
+
+func (app *Application) BuyFromCart() gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+
+		userID := c.Query("userid")
+
+		if userID == " " {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user id is empty"})
+		}
+
+		
+
+	}
 }
